@@ -38,7 +38,7 @@ class Silly {
 
 
 /*
-* This is just like StrongMultilinear but with a bit of loop unrolling. Strongly universal.
+* This is just like StrongMultilinear but with a bit of loop unrolling. Almost universal.
 * Assumes an even number of elements. 
 * Also assumes that the string does not exceed the size of the provided randombuffer (no checking).
 */
@@ -62,7 +62,7 @@ class StrongMultilinear {
 };
 
 /*
-* This is just like StrongMultilinear but with a bit of loop unrolling. Strongly universal.
+* This is just like StrongMultilinear but with a bit of loop unrolling. Almost universal.
 * Assumes an even number of elements. 
 * Also assumes that the string does not exceed the size of the provided randombuffer (no checking).
 */
@@ -87,7 +87,7 @@ class StrongMultilinearTwoByTwo {
 
 
 /*
-* From Thorup, SODA 09. Strongly universal.
+* From Thorup, SODA 09. Almost universal.
 * Assumes an even number of elements.
 * Also assumes that the string does not exceed the size of the provided randombuffer (no checking).
 */ 
@@ -110,6 +110,23 @@ class Thorup {
 
 };
 
+// just for testing purposes
+class NoMultiplication {
+	public:
 
+	  NoMultiplication(const vector<uint64> & randombuffer) : firstfew(randombuffer) {
+	  }
+	  
+	  template <class INTEGER>
+	  uint32 hash(const INTEGER * p, const INTEGER  * const endp)  const {
+	  	const uint64 * randomdata = & firstfew[0];
+	  	uint64 sum = *(randomdata++);
+	  	for(;p!=endp;++p,++randomdata) {
+            sum+= (*p)^(*randomdata) ;//*randomdata + static_cast<uint64>(*p);
+	  	}
+	  	return static_cast<uint32>(sum>>32);
+	  }
 
+	  const vector<uint64> & firstfew;
+};
 #endif
