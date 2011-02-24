@@ -30,14 +30,26 @@ double testSpeed(const T & hasher, const vector<INTEGER> & data, uint64 & answer
 	return timeelapsed;
 }
 
+template <class T, class INTEGER>
+double testSpeedManyTimes(const T & hasher, const vector<INTEGER> & data, uint64 & answer, const uint mN,const uint times) {
+	ZTimer t;
+	double timeelapsed;
+	t.reset();
+    for(uint k = 0; k<times;++k)
+	answer += hasher.hash(&data[0],&data[0]+mN);
+	timeelapsed = t.split()/(1000.0);
+	return timeelapsed;
+}
 
 int main(int params, char ** args) {
 	uint N;
 	if (params >= 2) 
 	  N = atoi(args[1]);
 	else {
-	  N = 268435456;
+	  N = 1024*1024;
 	}
+    cout<<"#sizeof(uint64)="<<sizeof(uint64)<<endl;
+    assert(sizeof(uint64)==8);
 	cout<<"# Initializing data..."<<endl;
 	vector<uint32>data(N);
 	vector<uint64>randombuffer64(N+1);
@@ -62,19 +74,43 @@ int main(int params, char ** args) {
   	Silly silly;
 	Thorup thorup(randombuffer64);
   	StrongMultilinear sm(randombuffer64);
+  	XAMA xama(randombuffer64);
+  	NoMultiplication testing(randombuffer64);
+  	StrongMultilinearTwoByTwo sm2by2(randombuffer64);
+    const uint shorttimes =2000000;
+	cout<<"# Starting tests... repeating each run "<<shorttimes<<" times"<<endl;
+	cout<<"# N silly thorup09(not-strongly-universal) xama strong-multilinear strong-multilinear-2by2"<<endl;
+	for(uint mN = 1024; mN<=2048; mN*=2) {
+		vector<double> counter(5,0); 
+  	  	counter[0]+=testSpeedManyTimes(silly,data,answer,mN,shorttimes);
+	  	counter[1]+=testSpeedManyTimes(thorup,data,answer,mN,shorttimes);
+	  	counter[2]+=testSpeedManyTimes(xama,data,answer,mN,shorttimes);
+	  	counter[3]+=testSpeedManyTimes(sm,data,answer,mN,shorttimes);
+	  	counter[4]+=testSpeedManyTimes(sm2by2,data,answer,mN,shorttimes);
+        cout<<mN<<" ";
+        for(uint k = 0; k<counter.size();++k)
+            cout<<counter[k]<<" ";
+        cout<<endl;
+	}
+    cout<<endl;
 	cout<<"# Starting tests... repeating each run "<<times<<" times"<<endl;
-	cout<<"# N silly thorup09 strong-multilinear strong-multilinear-2by2 commoniterative "<<endl;
+	cout<<"# N silly thorup09(not-strongly-universal) xama strong-multilinear strong-multilinear-2by2 "<<endl;
 	for(uint mN = 1048576; mN<=data.size(); mN*=2) {
-		vector<double> counter(4,0); 
-  		StrongMultilinearTwoByTwo sm2by2(randombuffer64);
+		vector<double> counter(5,0); 
 		for(uint k = 0;k<times;++k) {
   	  		counter[0]+=testSpeed(silly,data,answer,mN);
 	  		counter[1]+=testSpeed(thorup,data,answer,mN);
-	  		counter[2]+=testSpeed(sm,data,answer,mN);
-	  		counter[3]+=testSpeed(sm2by2,data,answer,mN);
+	  	    counter[2]+=testSpeedManyTimes(xama,data,answer,mN,shorttimes);
+	  		counter[3]+=testSpeed(sm,data,answer,mN);
+	  		counter[4]+=testSpeed(sm2by2,data,answer,mN);
 		}
-    	cout<<mN<<" "<<counter[0]<<" "<<counter[1]<<" "<< counter[2]<< " "<<counter[3]<<" "<<counter[4]<<endl;
+        cout<<mN<<" ";
+        for(uint k = 0; k<counter.size();++k)
+            cout<<counter[k]<<" ";
+        cout<<endl;
 	}
+    cout<<endl;
+
 	return answer;	
 }
 
