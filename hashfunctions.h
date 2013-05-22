@@ -48,6 +48,11 @@ class StrongMultilinear {
 	  }
 	  
 	  template <class INTEGER>
+#if defined(__GNUC__) && !( defined(__clang__) || defined(__INTEL_COMPILER  ))
+__attribute__((optimize("no-tree-vectorize")))
+// GCC has buggy SSE2 code generation in some cases
+// Thanks to Nathan Kurz for noticing that GCC 4.7 requires no-tree-vectorize to produce correct results.
+#endif
 	  uint32 hash(const INTEGER * p, const INTEGER  * const endp)  const {
 	  	const uint64 * randomdata = & firstfew[0];
 	  	uint64 sum = *(randomdata++);
@@ -124,6 +129,11 @@ class StrongMultilinearTwoByTwo {
 	  }
 	  
 	  template <class INTEGER>
+#if defined(__GNUC__) && !( defined(__clang__) || defined(__INTEL_COMPILER  ))
+__attribute__((optimize("no-tree-vectorize")))
+// GCC has buggy SSE2 code generation in some cases
+// Thanks to Nathan Kurz for noticing that GCC 4.7 requires no-tree-vectorize to produce correct results.
+#endif
 	  uint32 hash(const INTEGER * p, const INTEGER  * const endp)  const {
 	  	const uint64 * randomdata = & firstfew[0];
 	  	uint64 sum = *(randomdata++);
