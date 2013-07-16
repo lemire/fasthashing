@@ -4,7 +4,7 @@
 .SUFFIXES: .cpp .o .c .h
 
 
-CXXFLAGS = -g0 -ftree-vectorize -march=native -O3  -Wall  -Woverloaded-virtual  -Wsign-promo -Wold-style-cast  -mssse3 -pipe
+CXXFLAGS = -g0 -fno-tree-vectorize -march=native -O3  -Wall  -Woverloaded-virtual  -Wsign-promo  -pipe
 
 VECTOR =  -ftree-vectorize 
 
