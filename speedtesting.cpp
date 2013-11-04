@@ -75,6 +75,7 @@ int main(int params, char ** args) {
   	Silly silly;
 	Thorup thorup(randombuffer64);
   	StrongMultilinear sm(randombuffer64);
+  	PyramidalMultilinear pm(randombuffer64);
   	XAMA xama(randombuffer64);
 #if defined (__PCLMUL__) && (__SSE2__)
     CLStrongMultilinear clsm(randombuffer64); 
@@ -83,7 +84,7 @@ int main(int params, char ** args) {
   	StrongMultilinearTwoByTwo sm2by2(randombuffer64);
     const uint shorttimes =2000000;
 	cout<<"# Starting tests... repeating each run "<<shorttimes<<" times"<<endl;
-	cout<<"# N silly thorup09(not-strongly-universal) xama strong-multilinear strong-multilinear-2by2 clmulti*"<<endl;
+	cout<<"# N silly thorup09(not-strongly-universal) xama strong-multilinear strong-multilinear-2by2 pyramidalmultilinear clmulti*"<<endl;
 	for(uint mN = 1024; mN<=2048; mN*=2) {
 		vector<double> counter(6,0); 
   	  	counter[0]+=testSpeedManyTimes(silly,data,answer,mN,shorttimes);
@@ -91,8 +92,9 @@ int main(int params, char ** args) {
 	  	counter[2]+=testSpeedManyTimes(xama,data,answer,mN,shorttimes);
 	  	counter[3]+=testSpeedManyTimes(sm,data,answer,mN,shorttimes);
 	  	counter[4]+=testSpeedManyTimes(sm2by2,data,answer,mN,shorttimes);
+	  	counter[5]+=testSpeedManyTimes(pm,data,answer,mN,shorttimes);
 #if defined (__PCLMUL__) && (__SSE2__)
-	  	counter[5]+=testSpeedManyTimes(clsm,data,answer,mN,shorttimes);
+	  	counter[6]+=testSpeedManyTimes(clsm,data,answer,mN,shorttimes);
 #endif
         cout<<mN<<" ";
         for(uint k = 0; k<counter.size();++k)
@@ -101,7 +103,7 @@ int main(int params, char ** args) {
 	}
     cout<<endl;
 	cout<<"# Starting tests... repeating each run "<<times<<" times"<<endl;
-	cout<<"# N silly thorup09(not-strongly-universal) xama strong-multilinear strong-multilinear-2by2 clmulti*"<<endl;
+	cout<<"# N silly thorup09(not-strongly-universal) xama strong-multilinear strong-multilinear-2by2 pyramidalmultilinear clmulti*"<<endl;
 	for(uint mN = 1048576; mN<=data.size(); mN*=2) {
 		vector<double> counter(6,0); 
 		for(uint k = 0;k<times;++k) {
@@ -110,8 +112,9 @@ int main(int params, char ** args) {
 	  	    counter[2]+=testSpeedManyTimes(xama,data,answer,mN,shorttimes);
 	  		counter[3]+=testSpeed(sm,data,answer,mN);
 	  		counter[4]+=testSpeed(sm2by2,data,answer,mN);
+	  		counter[5]+=testSpeed(pm,data,answer,mN);
 #if defined (__PCLMUL__) && (__SSE2__)
-	  	counter[5]+=testSpeedManyTimes(clsm,data,answer,mN,shorttimes);
+	  	counter[6]+=testSpeedManyTimes(clsm,data,answer,mN,shorttimes);
 #endif
 		}
         cout<<mN<<" ";

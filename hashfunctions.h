@@ -14,6 +14,7 @@ typedef unsigned int uint32;
 
 #include <vector>
 #include <cassert>
+#include <stdexcept>
 
 using namespace std;
 
@@ -36,7 +37,6 @@ class Silly {
 };
 
 
-
 /*
 * Basic Strongly universal method.
 * Also assumes that the string does not exceed the size of the provided randombuffer (no checking).
@@ -46,6 +46,8 @@ class StrongMultilinear {
 
 	  StrongMultilinear(const vector<uint64> & randombuffer) : firstfew(randombuffer) {
 	  }
+	  
+	  
 	  
 	  template <class INTEGER>
 #if defined(__GNUC__) && !( defined(__clang__) || defined(__INTEL_COMPILER  ))
@@ -64,6 +66,97 @@ __attribute__((optimize("no-tree-vectorize")))
 
 	  const vector<uint64> & firstfew;
 };
+
+
+// same as StrongMultilinear, but starts uninitialized with random bits
+class UnitializedStrongMultilinear {
+	public:
+
+	  
+	  // if you wish to call assignRandomBits
+	  UnitializedStrongMultilinear() : firstfew() {
+	  }
+	  
+	  template <class ITER>
+	  void assignRandomBits(ITER i, ITER e) {
+	  	firstfew.assign(i,e);
+	  }
+	  
+	  template <class INTEGER>
+#if defined(__GNUC__) && !( defined(__clang__) || defined(__INTEL_COMPILER  ))
+__attribute__((optimize("no-tree-vectorize")))
+// GCC has buggy SSE2 code generation in some cases
+// Thanks to Nathan Kurz for noticing that GCC 4.7 requires no-tree-vectorize to produce correct results.
+#endif
+	  uint32 hash(const INTEGER * p, const INTEGER  * const endp)  const {
+	  	const uint64 * randomdata = & firstfew[0];
+	  	uint64 sum = *(randomdata++);
+	  	for(;p!=endp;++p,++randomdata) {
+	  		sum+= *randomdata * static_cast<uint64>(*p);
+	  	}
+	  	return static_cast<uint32>(sum>>32);
+	  }
+
+	  vector<uint64> firstfew;
+};
+
+/*
+* this function is 4/2**32 almost universal on 32 bits
+* it uses at most 8KB of random bits (for strings having 32-bit lengths)
+* code not thoroughly checked
+*/
+class PyramidalMultilinear {
+	public:
+	  enum{BlockSize=256};//
+
+	  PyramidalMultilinear(const vector<uint64> & randombuffer) : hashers(4) {
+	  	if(randombuffer.size() < 4 * (BlockSize+1))
+	  	  throw runtime_error("Random buffer is too small.");
+	  	vector<uint64>::const_iterator j = randombuffer.begin();
+	  	for(size_t i = 0; i < hashers.size() ; ++i) { 
+	  	  hashers[i].assignRandomBits(j, j+BlockSize+1);
+	  	  j+= BlockSize+1;
+	  	}
+	  }
+	  
+
+	  template <class INTEGER>
+	  uint32 hash(const INTEGER * p, const INTEGER  * const endp)  const {
+	  	uint32 length = (endp - p); // yes, we assume 32-bit deltas. no checking. TODO: improve
+	  	int newlength = ((length+BlockSize-1)/BlockSize);
+	  	vector<uint32> buffer(newlength);
+	  	int level = 0;
+	  	__hashMulti(p, &buffer[0], length, hashers[level]);
+	  	length = newlength;
+        while(length>1) {
+          newlength = ((length+BlockSize-1)/BlockSize);
+          ++level;
+          vector<uint32> newbuffer (newlength);
+          __hashMulti(&buffer[0],&newbuffer[0],  length, hashers[level]);
+          buffer.swap(newbuffer);
+          length = newlength;
+        }
+        return buffer.front();
+    }
+
+private:
+	  
+	  void __hashMulti(const uint32 *  string, uint32 *  output, int length, const UnitializedStrongMultilinear & sm) const {
+        int bufferpos = 0;
+        int offset = length - length/BlockSize*BlockSize;
+        for(; bufferpos<length/BlockSize;++bufferpos) {
+          output[bufferpos] = sm.hash(string+bufferpos*BlockSize, string+bufferpos*BlockSize+BlockSize);
+        } 
+        if(offset>0) {
+          output[length/BlockSize] = sm.hash(string+length/BlockSize*BlockSize, 
+         string+length/BlockSize*BlockSize+offset);
+        }
+      } 
+
+	  
+	  vector<UnitializedStrongMultilinear> hashers;
+};
+
 #if defined (__PCLMUL__) && (__SSE2__)
 
 #include <wmmintrin.h>
