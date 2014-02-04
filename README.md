@@ -1,12 +1,19 @@
 Fast strongly universal hash functions
-Daniel Lemire, October 25, 2010
----
+--------------------------------------
+
+
+
 
 What is this?
 --------------
 
 An implementation of a few very fast almost universal hash functions
 over 32-bit strings.
+
+It is necessary to understand random hashing to use this library.
+
+ Reference: Owen Kaser and Daniel Lemire, Strongly universal string hashing is fast, Computer Journal (to appear)
+   http://arxiv.org/abs/1202.4961
 
 Usage 
 ------
