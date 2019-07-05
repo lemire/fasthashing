@@ -2,6 +2,7 @@ Fast strongly universal hash functions
 --------------------------------------
 
 
+[![Code Quality: Cpp](https://img.shields.io/lgtm/grade/cpp/g/lemire/fasthashing.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/lemire/fasthashing/context:cpp)
 
 
 What is this?
